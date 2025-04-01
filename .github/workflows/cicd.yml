@@ -24,7 +24,7 @@ jobs:
           files: |
             web/**
             api/**
-          files_separator: '\n'  # Use newline instead of comma
+          files_separator: ','  # Use comma as separator instead of newline
 
       # Debug the outputs of the filter
       - name: Debug Filter Outputs
