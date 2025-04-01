@@ -3,7 +3,7 @@
 
 ### install the node packages in the web container:
 ```sh
-→ docker-compose run web npm install
+→ docker-compose run web npm installbgbg
 ```
 > Docker will download all of the images for the container.
 
