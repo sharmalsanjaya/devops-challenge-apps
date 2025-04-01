@@ -7,9 +7,11 @@ on:
       - 'web/**'
       - 'api/**'
   pull_request:
-    branches:
-      - development
-  workflow_dispatch:  # Allow manual triggers
+    branches: [development]
+    paths:
+      - 'web/**'
+      - 'api/**'
+  workflow_dispatch:
 
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -19,11 +21,22 @@ env:
 jobs:
   build-and-deploy-web:
     name: Build and Deploy Web
-    if: contains(github.event.head_commit.modified, 'web/') || contains(github.event.head_commit.added, 'web/')
     runs-on: ubuntu-latest
+    # More reliable change detection
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.changed_files, 'web/') ||
+      contains(github.event.commits[0].modified, 'web/') ||
+      contains(github.event.commits[0].added, 'web/')
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
+      - name: Debug Changed Files
+        run: |
+          echo "Modified files: ${{ toJSON(github.event.commits[0].modified) }}"
+          echo "Added files: ${{ toJSON(github.event.commits[0].added) }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -43,20 +56,23 @@ jobs:
             ${{ env.DOCKER_USERNAME }}/${{ env.WEB_IMAGE }}:latest
             ${{ env.DOCKER_USERNAME }}/${{ env.WEB_IMAGE }}:${{ github.sha }}
 
-      - name: Deploy Web App
-        run: |
-          echo "Deploying Web App with image ${{ env.DOCKER_USERNAME }}/${{ env.WEB_IMAGE }}:${{ github.sha }}"
-          # Add your actual deployment commands here
-          # For example, if using Kubernetes:
-          # kubectl set image deployment/web-app web=${{ env.DOCKER_USERNAME }}/${{ env.WEB_IMAGE }}:${{ github.sha }}
-
   build-and-deploy-api:
     name: Build and Deploy API
-    if: contains(github.event.head_commit.modified, 'api/') || contains(github.event.head_commit.added, 'api/')
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.changed_files, 'api/') ||
+      contains(github.event.commits[0].modified, 'api/') ||
+      contains(github.event.commits[0].added, 'api/')
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
+      - name: Debug Changed Files
+        run: |
+          echo "Modified files: ${{ toJSON(github.event.commits[0].modified) }}"
+          echo "Added files: ${{ toJSON(github.event.commits[0].added) }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -75,10 +91,3 @@ jobs:
           tags: |
             ${{ env.DOCKER_USERNAME }}/${{ env.API_IMAGE }}:latest
             ${{ env.DOCKER_USERNAME }}/${{ env.API_IMAGE }}:${{ github.sha }}
-
-      - name: Deploy API
-        run: |
-          echo "Deploying API with image ${{ env.DOCKER_USERNAME }}/${{ env.API_IMAGE }}:${{ github.sha }}"
-          # Add your actual deployment commands here
-          # For example, if using Kubernetes:
-          # kubectl set image deployment/api-app api=${{ env.DOCKER_USERNAME }}/${{ env.API_IMAGE }}:${{ github.sha }}
