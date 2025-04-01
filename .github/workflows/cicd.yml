@@ -2,38 +2,31 @@ name: Web & API CI/CD
 
 on:
   push:
-    paths:
-      - web/**   # Trigger only if changes are made in 'web' folder
-      - api/**   # Trigger only if changes are made in 'api' folder
+    branches:
+      - development
   pull_request:
-    paths:
-      - web/**   # Trigger only if PR affects 'web' folder
-      - api/**   # Trigger only if PR affects 'api' folder
-  workflow_dispatch:  # Allow manual triggers
-
+    branches:
+      - development
 jobs:
-  build-and-deploy-web:
-    if: contains(github.event.head_commit.modified, 'web/')  # Run only if 'web/' changed
+  tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web  # Set working directory to 'web'
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          web:
+            - 'web/**'
+          api:
+            - 'api/**'
+          # Run backend tests only if backend files were changed
+    - name: web tests
+      if: steps.filter.outputs.web == 'true'
+      run: echo "Executing web tests..."
 
-      - name: Debug Web CI/CD
-        run: echo "Web job is running because changes were detected in 'web/'"
+    - name: api tests
+      if: steps.filter.outputs.api == 'true'
+      run: echo "Executing api tests..."
 
-  build-and-deploy-api:
-    if: contains(github.event.head_commit.modified, 'api/')  # Run only if 'api/' changed
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: api  # Set working directory to 'api'
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Debug API CI/CD
-        run: echo "API job is running because changes were detected in 'api/'"
+      
