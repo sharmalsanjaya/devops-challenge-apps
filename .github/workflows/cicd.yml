@@ -2,96 +2,63 @@ name: Web & API CI/CD
 
 on:
   push:
-    branches: [development]
+    branches:
+      - development
   pull_request:
-    branches: [development]
-  workflow_dispatch:
+    branches:
+      - development
+  workflow_dispatch:  # Allow manual triggers
 
 jobs:
-  check-changes:
+  detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      web-changed: ${{ steps.filter.outputs.web }}
-      api-changed: ${{ steps.filter.outputs.api }}
+      web_changed: ${{ steps.filter.outputs.web }}
+      api_changed: ${{ steps.filter.outputs.api }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Required to get git history for changed-files action
-      
-      - uses: tj-actions/changed-files@v41
-        id: filter
-        with:
-          files: |
-            web/**
-            api/**
-          files_separator: ','  # Use comma as separator instead of newline
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      # Debug the outputs of the filter
-      - name: Debug Filter Outputs
-        run: |
-          echo "Web Changed: ${{ steps.filter.outputs.web }}"
-          echo "API Changed: ${{ steps.filter.outputs.api }}"
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            web:
+              - 'web/**'
+            api:
+              - 'api/**'
 
   build-and-deploy-web:
-    needs: check-changes
-    if: needs.check-changes.outputs.web-changed == 'true'
+    needs: detect-changes
+    if: needs.detect-changes.outputs.web_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Debug
-        run: echo "Building web because changes were detected in web/ directory"
+      - name: Build Web Docker Image
+        run: |
+          docker build -t my-dockerhub-username/web-app:latest ./web
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker push my-dockerhub-username/web-app:latest
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and Push Web Image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./web
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/web-app:latest
-            ${{ secrets.DOCKER_USERNAME }}/web-app:${{ github.sha }}
-
-      - name: Deploy Web
-        run: echo "Deploying web app..."
+      - name: Deploy Web App
+        run: echo "Deploying Web App..."  # Replace with actual deployment commands
 
   build-and-deploy-api:
-    needs: check-changes
-    if: needs.check-changes.outputs.api-changed == 'true'
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Debug
-        run: echo "Building api because changes were detected in api/ directory"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and Push API Image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./api
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/api-app:latest
-            ${{ secrets.DOCKER_USERNAME }}/api-app:${{ github.sha }}
+      - name: Build API Docker Image
+        run: |
+          docker build -t my-dockerhub-username/api-app:latest ./api
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker push my-dockerhub-username/api-app:latest
 
       - name: Deploy API
-        run: echo "Deploying api..."
+        run: echo "Deploying API..."  # Replace with actual deployment commands
