@@ -24,7 +24,7 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
-           api:
+            api:
               - 'api/**'
             web:
               - 'web/**'
