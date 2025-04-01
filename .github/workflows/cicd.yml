@@ -14,8 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        # Mobile folder working directory.
-        working-directory: web
+        working-directory: web  # Setting correct working directory for web
     steps:
       - uses: dorny/paths-filter@v3
         id: changes
@@ -24,31 +23,29 @@ jobs:
             web:
               - 'web/**'  # Detect changes in the 'web' folder
 
-      # Run the following only if changes are detected in the 'web' folder
       - if: steps.changes.outputs.web == 'true'
         name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Build Web Docker Image
-        run: |
-          docker build -t my-dockerhub-username/web-app:latest ./web
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push my-dockerhub-username/web-app:latest
-
-      - name: Deploy Web App
-        run: echo "Deploying Web App..."  # Replace with actual deployment commands
+      - name: Debug Web CI/CD
+        run: echo "Web job is running in the correct directory"
 
   build-and-deploy-api:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api  # Setting correct working directory for API
     steps:
-      - name: Checkout Code
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            api:
+              - 'api/**'  # Detect changes in the 'api' folder
+
+      - if: steps.changes.outputs.api == 'true'
+        name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Build API Docker Image
-        run: |
-          docker build -t my-dockerhub-username/api-app:latest ./api
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push my-dockerhub-username/api-app:latest
-
-      - name: Deploy API
-        run: echo "Deploying API..."  # Replace with actual deployment commands
+      - name: Debug API CI/CD
+        run: echo "API job is running in the correct directory"
