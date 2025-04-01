@@ -20,18 +20,26 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Detect Changes
-        id: filter
-        uses: dorny/paths-filter@v2
+        id: changes
+        uses: dorny/paths-filter@v3
         with:
           filters: |
+           api:
+              - 'api/**'
             web:
               - 'web/**'
-            api:
-              - 'api/**'
+
+  build-and-deploy-api:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        run: echo "Deploying api"
 
   build-and-deploy-web:
     needs: detect-changes
-    if: needs.detect-changes.outputs.web_changed == 'true'
+    if: needs.detect-changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -39,13 +47,5 @@ jobs:
 
       - name: Build Web Docker Image
         run: echo "Deploying Web App..."  # Replace with actual deployment commands
-
-  build-and-deploy-api:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.api_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        run: echo "Deploying api"
 
       
