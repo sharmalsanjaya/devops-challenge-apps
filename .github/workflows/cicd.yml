@@ -10,30 +10,22 @@ on:
   workflow_dispatch:  # Allow manual triggers
 
 jobs:
-  detect-changes:
+  build-and-deploy-web:
     runs-on: ubuntu-latest
-    outputs:
-      web_changed: ${{ steps.filter.outputs.web }}
-      api_changed: ${{ steps.filter.outputs.api }}
+    defaults:
+      run:
+      # Mobile folder working directory.
+        working-directory: web
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v2 
 
-      - name: Detect Changes
+      - uses: dorny/paths-filter@v2
         id: filter
-        uses: dorny/paths-filter@v2
         with:
           filters: |
             web:
-              - 'web/**'
-            api:
-              - 'api/**'
-
-  build-and-deploy-web:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.web_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
+              - 'web/**'   
+              
       - name: Checkout Code
         uses: actions/checkout@v3
 
@@ -47,8 +39,6 @@ jobs:
         run: echo "Deploying Web App..."  # Replace with actual deployment commands
 
   build-and-deploy-api:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.api_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
