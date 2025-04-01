@@ -41,7 +41,7 @@ jobs:
         run: |
           docker build -t my-dockerhub-username/web-app:latest ./web
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push my-dockerhub-username/web-app:latest
+          docker push sanjaya12345/web-app:latest
 
       - name: Deploy Web App
         run: echo "Deploying Web App..."  # Replace with actual deployment commands
@@ -58,7 +58,7 @@ jobs:
         run: |
           docker build -t my-dockerhub-username/api-app:latest ./api
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push my-dockerhub-username/api-app:latest
+          docker push sanjaya12345/api-app:latest
 
       - name: Deploy API
         run: echo "Deploying API..."  # Replace with actual deployment commands
