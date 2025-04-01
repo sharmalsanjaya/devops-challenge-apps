@@ -12,16 +12,21 @@ on:
 jobs:
   build-and-deploy-web:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        # Mobile folder working directory.
+        working-directory: web
     steps:
       - uses: dorny/paths-filter@v3
         id: changes
         with:
           filters: |
             web:
-              - 'web/**'   
-        # run only if some file in 'src' folder was changed
-      - if: steps.changes.outputs.src == 'true'
-      - name: Checkout Code
+              - 'web/**'  # Detect changes in the 'web' folder
+
+      # Run the following only if changes are detected in the 'web' folder
+      - if: steps.changes.outputs.web == 'true'
+        name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Build Web Docker Image
