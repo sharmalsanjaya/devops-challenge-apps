@@ -26,6 +26,12 @@ jobs:
             api/**
           files_separator: '\n'  # Use newline instead of comma
 
+      # Debug the outputs of the filter
+      - name: Debug Filter Outputs
+        run: |
+          echo "Web Changed: ${{ steps.filter.outputs.web }}"
+          echo "API Changed: ${{ steps.filter.outputs.api }}"
+
   build-and-deploy-web:
     needs: check-changes
     if: needs.check-changes.outputs.web-changed == 'true'
