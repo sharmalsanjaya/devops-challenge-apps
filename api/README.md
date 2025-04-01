@@ -1,7 +1,7 @@
 # Devops API App
 
 
-### install the node packages in the web container:gg
+### install the node packages in the web container:
 ```sh
 → docker-compose run api npm install
 ```
