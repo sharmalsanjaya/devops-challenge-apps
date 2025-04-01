@@ -7,7 +7,7 @@
 ```
 > Docker will download all of the images for the container.
 
-### start up the app:
+### start up the app:y
 ```sh
 → docker-compose up
 ```
