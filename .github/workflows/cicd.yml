@@ -3,40 +3,39 @@ name: Web & API CI/CD
 on:
   push:
     branches: [development]
-    paths:
-      - 'web/**'
-      - 'api/**'
   pull_request:
     branches: [development]
-    paths:
-      - 'web/**'
-      - 'api/**'
   workflow_dispatch:
 
-env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  WEB_IMAGE: sanjaya12345/web-app
-  API_IMAGE: sanjaya12345/api-app
-
 jobs:
-  build-and-deploy-web:
-    name: Build and Deploy Web
+  check-changes:
     runs-on: ubuntu-latest
-    # More reliable change detection
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.changed_files, 'web/') ||
-      contains(github.event.commits[0].modified, 'web/') ||
-      contains(github.event.commits[0].added, 'web/')
-    
+    outputs:
+      web-changed: ${{ steps.filter.outputs.web }}
+      api-changed: ${{ steps.filter.outputs.api }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Required to get git history for changed-files action
+      
+      - uses: tj-actions/changed-files@v41
+        id: filter
+        with:
+          files: |
+            web/**
+            api/**
+          files_separator: ','
+
+  build-and-deploy-web:
+    needs: check-changes
+    if: needs.check-changes.outputs.web-changed == 'true'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Debug Changed Files
-        run: |
-          echo "Modified files: ${{ toJSON(github.event.commits[0].modified) }}"
-          echo "Added files: ${{ toJSON(github.event.commits[0].added) }}"
+      - name: Debug
+        run: echo "Building web because changes were detected in web/ directory"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -44,7 +43,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ env.DOCKER_USERNAME }}
+          username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Web Image
@@ -53,26 +52,22 @@ jobs:
           context: ./web
           push: true
           tags: |
-            ${{ env.DOCKER_USERNAME }}/${{ env.WEB_IMAGE }}:latest
-            ${{ env.DOCKER_USERNAME }}/${{ env.WEB_IMAGE }}:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/web-app:latest
+            ${{ secrets.DOCKER_USERNAME }}/web-app:${{ github.sha }}
+
+      - name: Deploy Web
+        run: echo "Deploying web app..."
 
   build-and-deploy-api:
-    name: Build and Deploy API
+    needs: check-changes
+    if: needs.check-changes.outputs.api-changed == 'true'
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.changed_files, 'api/') ||
-      contains(github.event.commits[0].modified, 'api/') ||
-      contains(github.event.commits[0].added, 'api/')
-    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Debug Changed Files
-        run: |
-          echo "Modified files: ${{ toJSON(github.event.commits[0].modified) }}"
-          echo "Added files: ${{ toJSON(github.event.commits[0].added) }}"
+      - name: Debug
+        run: echo "Building api because changes were detected in api/ directory"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -80,7 +75,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ env.DOCKER_USERNAME }}
+          username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push API Image
@@ -89,5 +84,8 @@ jobs:
           context: ./api
           push: true
           tags: |
-            ${{ env.DOCKER_USERNAME }}/${{ env.API_IMAGE }}:latest
-            ${{ env.DOCKER_USERNAME }}/${{ env.API_IMAGE }}:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/api-app:latest
+            ${{ secrets.DOCKER_USERNAME }}/api-app:${{ github.sha }}
+
+      - name: Deploy API
+        run: echo "Deploying api..."
