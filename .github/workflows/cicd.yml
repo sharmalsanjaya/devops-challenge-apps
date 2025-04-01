@@ -8,25 +8,28 @@ on:
     branches:
       - development
 jobs:
-  tests:
+  build-and-deploy-web:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    if: contains(toJson(github.event.commits.*.modified), 'web/')  # Only run if 'web/' changed
     steps:
-    - uses: actions/checkout@v4
-    - uses: dorny/paths-filter@v3
-      id: filter
-      with:
-        filters: |
-          web:
-            - 'web/**'
-          api:
-            - 'api/**'
-          # Run backend tests only if backend files were changed
-    - name: web tests
-      if: steps.filter.outputs.web == 'true'
-      run: echo "Executing web tests..."
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: api tests
-      if: steps.filter.outputs.api == 'true'
-      run: echo "Executing api tests..."
+      - name: Debug Web CI/CD
+        run: echo "Web job is running because 'web/' was modified"
 
-      
+  build-and-deploy-api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    if: contains(toJson(github.event.commits.*.modified), 'api/')  # Only run if 'api/' changed
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Debug API CI/CD
+        run: echo "API job is running because 'api/' was modified"
