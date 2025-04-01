@@ -14,8 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: web  # Setting correct working directory for web
+        working-directory: web
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3  # Ensure repo is checked out first
+
       - uses: dorny/paths-filter@v3
         id: changes
         with:
@@ -24,18 +27,18 @@ jobs:
               - 'web/**'  # Detect changes in the 'web' folder
 
       - if: steps.changes.outputs.web == 'true'
-        name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Debug Web CI/CD
+        name: Debug Web CI/CD
         run: echo "Web job is running in the correct directory"
 
   build-and-deploy-api:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: api  # Setting correct working directory for API
+        working-directory: api
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3  # Ensure repo is checked out first
+
       - uses: dorny/paths-filter@v3
         id: changes
         with:
@@ -44,8 +47,5 @@ jobs:
               - 'api/**'  # Detect changes in the 'api' folder
 
       - if: steps.changes.outputs.api == 'true'
-        name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Debug API CI/CD
+        name: Debug API CI/CD
         run: echo "API job is running in the correct directory"
