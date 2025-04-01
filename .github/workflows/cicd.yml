@@ -31,7 +31,7 @@ jobs:
 
   build-and-deploy-web:
     needs: detect-changes
-    if: needs.detect-changes.outputs.web_changed == 'true' && needs.detect-changes.outputs.api_changed == 'false'
+    if: needs.detect-changes.outputs.web_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -48,7 +48,7 @@ jobs:
 
   build-and-deploy-api:
     needs: detect-changes
-    if: needs.detect-changes.outputs.api_changed == 'true' && needs.detect-changes.outputs.web_changed == 'false'
+    if: needs.detect-changes.outputs.api_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
