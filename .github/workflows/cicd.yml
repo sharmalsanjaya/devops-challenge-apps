@@ -12,10 +12,6 @@ on:
 jobs:
   build-and-deploy-web:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-      # Mobile folder working directory.
-        working-directory: web
     steps:
       - uses: dorny/paths-filter@v3
         id: changes
