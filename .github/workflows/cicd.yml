@@ -24,7 +24,7 @@ jobs:
           files: |
             web/**
             api/**
-          files_separator: ','
+          files_separator: '\n'  # Use newline instead of comma
 
   build-and-deploy-web:
     needs: check-changes
