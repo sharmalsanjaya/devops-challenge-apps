@@ -5,7 +5,7 @@ var request = require('request');
 
 var api_url = process.env.API_HOST + '/api/status';
 
-/* GET home page. */
+/* GET home page */
 router.get('/', function(req, res, next) {
   request(
     {
