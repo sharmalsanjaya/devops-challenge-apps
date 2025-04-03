@@ -19,17 +19,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Ensures complete history for correct change detection
+          fetch-depth: 2  # Ensures we have at least two commits
 
       - name: Debug File Changes
         run: |
+          echo "Comparing ${{ github.event.before }} with ${{ github.sha }}"
           git diff --name-only ${{ github.event.before }} ${{ github.sha }}
 
       - name: Detect Changes
         id: changes
         uses: dorny/paths-filter@v3
         with:
-          base: HEAD~1  # Force correct diff calculation
+          base: ${{ github.event.before }}  # Use last commit
           filters: |
             api:
               - 'api/**'
