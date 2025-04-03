@@ -19,12 +19,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 1
+          fetch-depth: 0  # Ensures complete history for correct change detection
+
+      - name: Debug File Changes
+        run: |
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
 
       - name: Detect Changes
         id: changes
         uses: dorny/paths-filter@v3
         with:
+          base: HEAD~1  # Force correct diff calculation
           filters: |
             api:
               - 'api/**'
