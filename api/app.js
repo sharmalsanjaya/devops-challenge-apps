@@ -5,7 +5,7 @@ var uuid = require('node-uuid');
 var pg = require('pg');
 var conString = process.env.DB; // "postgres://username:password@localhost/database";
 
-// Routes
+// Routess
 app.get('/api/status', function(req, res) {
   pg.connect(conString, function(err, client, done) {
     if(err) {
